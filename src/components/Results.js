@@ -53,8 +53,8 @@ export default function Results() {
         })
     }
     
-    function findItems() {
-        return itemsQuery.data.filter(item => {
+    function findItems(data) {
+        return data.filter(item => {
             return parseInt(item.activityID) === parseInt(currentActivity)
         })
     }
@@ -69,7 +69,15 @@ export default function Results() {
         console.log(`refetching`)
         const res = await itemsQuery.refetch()
         console.log(res)
-        getChartData(res.data)
+        getChartData(findItems(res.data))
+    }
+
+    function sortResults(items, type) {
+        if(type === "asc") {
+            return items.sort((a, b) => (a.date < b.date) ? -1 : 1)
+        } else {
+            items.sort((a, b) => (a.date > b.date) ? -1 : 1)
+        }
     }
 
     function getChartData(refetched) {
@@ -78,7 +86,7 @@ export default function Results() {
         refetched ? itemsData = refetched : itemsData = itemsQuery.data
         let xaxisCategories = []
         let seriesData = []
-        itemsData.forEach(item => {
+        sortResults(itemsData, "asc").forEach(item => {
             if(parseInt(item.activityID) === parseInt(currentActivity)) {
                 xaxisCategories.push(DateTime.fromMillis(item.date).toFormat("dd.MM.yyyy"))
                 seriesData.push(item.value)
@@ -138,7 +146,7 @@ export default function Results() {
                     <p>Comment</p>
                     <p className="row-options"></p>
                 </div>
-                {itemsQuery.data !== undefined && findItems().map((item) => {
+                {itemsQuery.data !== undefined && findItems(itemsQuery.data).map((item) => {
                         return (
                             <div key={item.id} className="table-row">
                                 <p className="row-date">{DateTime.fromMillis(item.date).toFormat("dd.MM.yyyy")}</p>
